@@ -9,7 +9,7 @@ router.get('/', function(req, res, next) {
   let maghribTime = 'lala'
   let subuhTime
   (async () => {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
     const page = await browser.newPage();
     await page.goto('https://www.muis.gov.sg/');
     await page.screenshot({path: 'example.png'});
