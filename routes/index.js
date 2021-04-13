@@ -6,8 +6,6 @@ const puppeteer = require('puppeteer');
 /* GET home page. */
 router.get('/', function(req, res, next) {
   //puppeter code and  extract the timings 
-  let maghribTime = 'lala'
-  let subuhTime
   (async () => {
     const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
     const page = await browser.newPage();
