@@ -1,7 +1,17 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
-export default function Home({ canEat, data }) {
+export default function Home({ data }) {
+  var current = new Date();
+  var subuh = new Date();
+  var maghrib = new Date();
+  let canEat = false;
+  subuh.setHours(data.subuh.split(":")[0], data.subuh.split(":")[1], 30);
+  maghrib.setHours(data.maghrib.split(":")[0], data.maghrib.split(":")[1], 30);
+  if (current > maghrib || current < subuh) {
+    canEat = true;
+  }
+  console.log(canEat);
   return (
     <div className={styles.container}>
       <Head>
@@ -36,19 +46,9 @@ export async function getServerSideProps() {
     `SELECT * FROM timings ORDER BY id DESC LIMIT 1`
   );
   let data = rows[0];
-  var current = new Date();
-  var subuh = new Date();
-  var maghrib = new Date();
-  let canEat = false;
-  subuh.setHours(data.subuh.split(":")[0], data.subuh.split(":")[1], 30);
-  maghrib.setHours(data.maghrib.split(":")[0], data.maghrib.split(":")[1], 30);
-  if (current > maghrib || current < subuh) {
-    canEat = true;
-  }
-  console.log(canEat);
+
   return {
     props: {
-      canEat: canEat,
       data: data,
     },
   };
