@@ -10,34 +10,33 @@ const datesAreOnSameDay = (first, second) =>
   first.getMonth() === second.getMonth() &&
   first.getDate() === second.getDate();
 /* GET home page. */
+
+
 router.get("/", async function (req, res, next) {
   //code to try to extract from cache, else run the scraping
   const dateNow = new Date();
   const dateStored = new Date(data.date);
   console.log(dateNow);
   console.log(dateStored);
-  let maghribTime
-  let subuhTime 
+  let maghribTime;
+  let subuhTime;
   if (!datesAreOnSameDay(dateNow, dateStored)) {
-    let scrape = await scrapeTime()
-    updateJSONTime(dateNow,scrape.subuhTime,scrape.maghribTime)
-    maghribTime = scrape.maghribTime
-    subuhTime = scrape.subuhTime
-
+      let scrape = await scrapeTime();
+      updateJSONTime(dateNow, scrape.subuhTime, scrape.maghribTime);
+      maghribTime = scrape.maghribTime;
+      subuhTime = scrape.subuhTime;
   } else {
-    maghribTime = data.maghribTime
-    subuhTime = data.subuhTime
+      maghribTime = data.maghribTime;
+      subuhTime = data.subuhTime;
   }
   res.render("index", {
-    title: "When to eat",
-    subuhTime: subuhTime,
-    maghribTime: maghribTime,
+      title: "When to eat",
+      subuhTime: subuhTime,
+      maghribTime: maghribTime,
   });
 });
 
 module.exports = router;
-
-
 
 function updateJSONTime(dateNow, subuhTime, maghribTime) {
   fs.writeFileSync(
@@ -50,8 +49,7 @@ function updateJSONTime(dateNow, subuhTime, maghribTime) {
   );
 }
 
-
- //puppeter code and  extract the timings
+//puppeter code and  extract the timings
 async function scrapeTime() {
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
@@ -65,7 +63,8 @@ async function scrapeTime() {
     (span) => span.textContent
   );
   await browser.close();
-  return { 
-    subuhTime :subuhTime, 
-    maghribTime : maghribTime }
+  return {
+    subuhTime: subuhTime,
+    maghribTime: maghribTime,
+  };
 }
