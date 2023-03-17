@@ -20,14 +20,13 @@ export default async function handler(req, res) {
             const connection = mysql.createConnection(process.env.DATABASE_URL);
             console.log("Connected to PlanetScale!");
             var sql = `INSERT INTO timings (subuh, maghrib) VALUES ('${subuhTime}', '${maghribTime}')`;
-            connection.query(sql, function (err, result) {
+            connection.execute(sql, [10], (err, rows) => {
                 if (err) throw err;
                 console.log("1 record inserted");
-                console.log(result);
+                console.log(rows);
                 connection.end();
-            })
-
-            res.status(200).json({ maghribTime: maghribTime, subuhTime: subuhTime })
+                res.status(200).json({ maghribTime: maghribTime, subuhTime: subuhTime })
+            });
         })
         .catch(error => {
             console.log(error);
