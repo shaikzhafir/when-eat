@@ -1,7 +1,7 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
+const mysql = require("mysql2");
+require("dotenv").config();
 
 // just doing req and res to debug on localhost
 // cron should just call this endpoint
@@ -17,13 +17,16 @@ export default async function handler(req, res) {
             console.log(subuhTime); // Output: the text content of the div with id "PrayerTimeControl1_Subuh"
             console.log(maghribTime); // Output: the text content of the div with id "PrayerTimeControl1_Maghrib"
 
-            // update json file
-            const filePath = path.join(process.cwd(), 'src', 'data.json');
-            const fileContents = fs.readFileSync(filePath, 'utf8');
-            const data = JSON.parse(fileContents);
-            data.subuh = subuhTime
-            data.maghrib = maghribTime
-            fs.writeFileSync(filePath, JSON.stringify(data));
+            const connection = mysql.createConnection(process.env.DATABASE_URL);
+            console.log("Connected to PlanetScale!");
+            var sql = `INSERT INTO timings (subuh, maghrib) VALUES ('${subuhTime}', '${maghribTime}')`;
+            connection.query(sql, function (err, result) {
+                if (err) throw err;
+                console.log("1 record inserted");
+                console.log(result);
+                connection.end();
+            })
+
             res.status(200).json({ maghribTime: maghribTime, subuhTime: subuhTime })
         })
         .catch(error => {

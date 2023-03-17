@@ -1,8 +1,7 @@
 import Head from 'next/head'
-import path from 'path'
-import fs from 'fs'
 
 export default function Home({ data }) {
+  console.log(`now is ${new Date} subuh is ${data.subuh}, maghrib is ${data.maghrib}`);
   const canEat = calculateCanEat(data.maghrib, data.subuh)
   return (
     <>
@@ -39,7 +38,7 @@ function calculateCanEat(maghrib, subuh) {
   if (now > maghrib) {
     return true
   }
-  else if (now > subuh && now < maghrib) {
+  if (now > subuh && now < maghrib) {
     return false
   }
   else {
@@ -48,14 +47,17 @@ function calculateCanEat(maghrib, subuh) {
 }
 
 
-export async function getStaticProps() {
-  const filePath = path.join(process.cwd(), 'src', 'data.json');
-  const fileContents = fs.readFileSync(filePath, 'utf8');
-  const data = JSON.parse(fileContents);
-
+export async function getServerSideProps() {
+  const mysql = require("mysql2/promise");
+  const connection = await mysql.createConnection(process.env.DATABASE_URL);
+  console.log("Connected to PlanetScale!");
+  const [rows] = await connection.execute(
+    `SELECT * FROM timings ORDER BY id DESC LIMIT 1`
+  );
   return {
     props: {
-      data,
+      data: rows[0],
     },
   };
 }
+
