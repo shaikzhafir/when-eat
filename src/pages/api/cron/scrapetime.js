@@ -18,12 +18,10 @@ export default async function handler(req, res) {
             console.log(maghribTime); // Output: the text content of the div with id "PrayerTimeControl1_Maghrib"
 
             const connection = mysql.createConnection(process.env.DATABASE_URL);
-            console.log("Connected to PlanetScale!");
             var sql = `INSERT INTO timings (subuh, maghrib) VALUES ('${subuhTime}', '${maghribTime}')`;
-            connection.execute(sql, [10], (err, rows) => {
+            connection.execute(sql, [], (err) => {
                 if (err) throw err;
                 console.log("1 record inserted");
-                console.log(rows);
                 connection.end();
                 res.status(200).json({ maghribTime: maghribTime, subuhTime: subuhTime })
             });
@@ -38,23 +36,9 @@ export default async function handler(req, res) {
 function convertToTime(scrapedTime, add12hours) {
     // set the time to 30 seconds past "HH:MM"
     const [hour, minute] = scrapedTime.split(":");
-    const date = new Date()
-    date.setHours(parseInt(hour) + (add12hours ? 12 : 0), parseInt(minute), 30, 0);
-    // create a formatter for the Singapore time zone
-    const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Singapore',
-        hour12: false,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    });
-
-    // format the date to a string in the Singapore time zone
-    const dateString = formatter.format(date);
-    console.log(dateString);
-
-    return dateString
+    if (add12hours) {
+        return `${parseInt(hour) + 12}:${minute}`;
+    }
+    // if subuh, dont add extra time
+    return `${hour}:${minute}`;
 }

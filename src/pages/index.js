@@ -1,7 +1,6 @@
 import Head from 'next/head'
 
 export default function Home({ data }) {
-  console.log(`now is ${new Date} subuh is ${data.subuh}, maghrib is ${data.maghrib}`);
   const canEat = calculateCanEat(data.maghrib, data.subuh)
   return (
     <>
@@ -32,15 +31,22 @@ export default function Home({ data }) {
 
 
 function calculateCanEat(maghrib, subuh) {
-  maghrib = new Date(maghrib)
-  subuh = new Date(subuh)
+  // convert to local time in browser
+  const maghribLocalTime = new Date()
+  maghribLocalTime.setHours(maghrib.split(':')[0], maghrib.split(':')[1], 10)
+  const subuhLocalTime = new Date()
+  subuhLocalTime.setHours(subuh.split(':')[0], subuh.split(':')[1], 0)
   const now = new Date()
-  if (now > maghrib) {
+  console.log(`now is ${now} subuh is ${subuhLocalTime}, maghrib is ${maghribLocalTime}`);
+  // if now is after maghrib or before subuh, can eat
+  if (now > maghribLocalTime || now < subuhLocalTime) {
     return true
   }
-  if (now > subuh && now < maghrib) {
+  // if now is after subuh and before maghrib, cannot eat
+  if (now > subuhLocalTime && now < maghribLocalTime) {
     return false
   }
+  // if something else, cannot eat
   else {
     return false
   }
