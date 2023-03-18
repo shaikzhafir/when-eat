@@ -54,16 +54,33 @@ function calculateCanEat(maghrib, subuh) {
 
 
 export async function getServerSideProps() {
-  const mysql = require("mysql2/promise");
-  const connection = await mysql.createConnection(process.env.DATABASE_URL);
-  console.log("Connected to PlanetScale!");
-  const [rows] = await connection.execute(
-    `SELECT * FROM timings ORDER BY id DESC LIMIT 1`
-  );
-  return {
-    props: {
-      data: rows[0],
-    },
-  };
+  const initDBIfNotExists = require('@/db/sqlite').initDBIfNotExists;
+  try {
+    const db = initDBIfNotExists();
+    // get the latest row
+    const row = await new Promise((resolve, reject) => {
+      db.get(`SELECT * FROM timings ORDER BY id DESC LIMIT 1`, (err, row) => {
+        if (err) {
+          console.log(err.message);
+          reject(err);
+        }
+        resolve(row);
+      });
+    });
+    return {
+      props: {
+        data: row,
+      },
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      props: {
+        data: {
+          subuh: '5:30',
+          maghrib: '19:30',
+        },
+      },
+    };
+  }
 }
-
