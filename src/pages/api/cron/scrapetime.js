@@ -1,6 +1,7 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
-const initDBIfNotExists = require('@/db/sqlite').initDBIfNotExists;
+const Redis = require('ioredis');
+
 require("dotenv").config();
 
 // just doing req and res to debug on localhost
@@ -17,29 +18,12 @@ export default async function handler(req, res) {
         console.log(subuhTime); // Output: the text content of the div with id "PrayerTimeControl1_Subuh"
         console.log(maghribTime); // Output: the text content of the div with id "PrayerTimeControl1_Maghrib"
 
-        const db = initDBIfNotExists();
-        await new Promise((resolve, reject) => {
-            db.serialize(() => {
-                db.run(`INSERT INTO timings (subuh, maghrib) VALUES (?, ?)`, [subuhTime, maghribTime], (err) => {
-                    if (err) {
-                        console.error(err.message);
-                        reject(err);
-                    }
-                    resolve();
-                });
-            });
+        let client = new Redis(process.env.REDIS_URL);
+        client.on("error", function (err) {
+            throw err;
         });
-
-        const row = await new Promise((resolve, reject) => {
-            db.get(`SELECT * FROM timings ORDER BY id DESC LIMIT 1`, (err, row) => {
-                if (err) {
-                    console.error(err.message);
-                    reject(err);
-                }
-                resolve(row);
-            });
-        });
-        console.log(row);
+        await client.set('maghrib', maghribTime, Redis.print);
+        await client.set('subuh', subuhTime, Redis.print);
         res.status(200).json({ subuh: subuhTime, maghrib: maghribTime })
 
     } catch (error) {

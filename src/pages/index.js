@@ -1,7 +1,7 @@
-import Head from 'next/head'
+import Head from "next/head";
 
 export default function Home({ data }) {
-  const canEat = calculateCanEat(data.maghrib, data.subuh)
+  const canEat = calculateCanEat(data.maghrib, data.subuh);
   return (
     <>
       <Head>
@@ -10,75 +10,74 @@ export default function Home({ data }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <h1 className="text-3xl font-bold underline text-center">
-        When eat?
-      </h1>
-      <div className='flex justify-center mt-10'>
-        {canEat ?
+      <h1 className="text-3xl font-bold underline text-center">When eat?</h1>
+      <div className="flex justify-center mt-10">
+        {canEat ? (
           <div>
-            <h1 className='text-center'>eat time</h1>
+            <h1 className="text-center">eat time</h1>
             <img src="/can-eat.jpg" alt="food" />
-          </div> :
+          </div>
+        ) : (
           <div>
-            <h1 className='text-center'>allah is watching</h1>
+            <h1 className="text-center">allah is watching</h1>
             <img src="/cannot-eat.jpg" alt="no food" />
-          </div>}
+          </div>
+        )}
       </div>
-
     </>
-  )
+  );
 }
-
 
 function calculateCanEat(maghrib, subuh) {
   // convert to local time in browser
-  const maghribLocalTime = new Date()
-  maghribLocalTime.setHours(maghrib.split(':')[0], maghrib.split(':')[1], 10)
-  const subuhLocalTime = new Date()
-  subuhLocalTime.setHours(subuh.split(':')[0], subuh.split(':')[1], 0)
-  const now = new Date()
-  console.log(`now is ${now} subuh is ${subuhLocalTime}, maghrib is ${maghribLocalTime}`);
+  const maghribLocalTime = new Date();
+  maghribLocalTime.setHours(maghrib.split(":")[0], maghrib.split(":")[1], 10);
+  const subuhLocalTime = new Date();
+  subuhLocalTime.setHours(subuh.split(":")[0], subuh.split(":")[1], 0);
+  const now = new Date();
+  console.log(
+    `now is ${now} subuh is ${subuhLocalTime}, maghrib is ${maghribLocalTime}`
+  );
   // if now is after maghrib or before subuh, can eat
   if (now > maghribLocalTime || now < subuhLocalTime) {
-    return true
+    return true;
   }
   // if now is after subuh and before maghrib, cannot eat
   if (now > subuhLocalTime && now < maghribLocalTime) {
-    return false
+    return false;
   }
   // if something else, cannot eat
   else {
-    return false
+    return false;
   }
 }
 
-
 export async function getServerSideProps() {
-  const initDBIfNotExists = require('@/db/sqlite').initDBIfNotExists;
   try {
-    const db = initDBIfNotExists();
-    // get the latest row
-    const row = await new Promise((resolve, reject) => {
-      db.get(`SELECT * FROM timings ORDER BY id DESC LIMIT 1`, (err, row) => {
-        if (err) {
-          console.log(err.message);
-          reject(err);
-        }
-        resolve(row);
-      });
+    const Redis = require("ioredis");
+    require("dotenv").config();
+
+    let client = new Redis(process.env.REDIS_URL);
+    client.on("error", function (err) {
+      throw err;
     });
-    return {
-      props: {
-        data: row,
-      },
-    };
-  } catch (error) {
-    console.log(error);
+    const subuh = await client.get("subuh");
+    const maghrib = await client.get("maghrib");
+
     return {
       props: {
         data: {
-          subuh: '5:30',
-          maghrib: '19:30',
+          subuh: subuh,
+          maghrib: maghrib,
+        },
+      },
+    };
+  } catch (error) {
+    return {
+      props: {
+        data: {
+          subuh: "5:30",
+          maghrib: "19:30",
         },
       },
     };
