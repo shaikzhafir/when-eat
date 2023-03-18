@@ -1,36 +1,35 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
-const mysql = require("mysql2");
+const Redis = require('ioredis');
+
 require("dotenv").config();
 
 // just doing req and res to debug on localhost
 // cron should just call this endpoint
 export default async function handler(req, res) {
     // scrape using cheerio
-    axios.get('https://www.muis.gov.sg/')
-        .then(response => {
-            const $ = cheerio.load(response.data);
-            const scrapedSubuh = $('#PrayerTimeControl1_Subuh').text();
-            const scrapedMaghrib = $('#PrayerTimeControl1_Maghrib').text();
-            const subuhTime = convertToTime(scrapedSubuh, false)
-            const maghribTime = convertToTime(scrapedMaghrib, true)
-            console.log(subuhTime); // Output: the text content of the div with id "PrayerTimeControl1_Subuh"
-            console.log(maghribTime); // Output: the text content of the div with id "PrayerTimeControl1_Maghrib"
+    try {
+        const response = await axios.get('https://www.muis.gov.sg/')
+        const $ = cheerio.load(response.data);
+        const scrapedSubuh = $('#PrayerTimeControl1_Subuh').text();
+        const scrapedMaghrib = $('#PrayerTimeControl1_Maghrib').text();
+        const subuhTime = convertToTime(scrapedSubuh, false)
+        const maghribTime = convertToTime(scrapedMaghrib, true)
+        console.log(subuhTime); // Output: the text content of the div with id "PrayerTimeControl1_Subuh"
+        console.log(maghribTime); // Output: the text content of the div with id "PrayerTimeControl1_Maghrib"
 
-            const connection = mysql.createConnection(process.env.DATABASE_URL);
-            var sql = `INSERT INTO timings (subuh, maghrib) VALUES ('${subuhTime}', '${maghribTime}')`;
-            connection.execute(sql, [], (err) => {
-                if (err) throw err;
-                console.log("1 record inserted");
-                connection.end();
-                res.status(200).json({ maghribTime: maghribTime, subuhTime: subuhTime })
-            });
-        })
-        .catch(error => {
-            console.log(error);
-            res.status(503).json({ error: error })
+        let client = new Redis(process.env.REDIS_URL);
+        client.on("error", function (err) {
+            throw err;
         });
+        await client.set('maghrib', maghribTime, Redis.print);
+        await client.set('subuh', subuhTime, Redis.print);
+        res.status(200).json({ subuh: subuhTime, maghrib: maghribTime })
 
+    } catch (error) {
+        console.log(error);
+        res.status(503).json({ error: error })
+    }
 }
 
 function convertToTime(scrapedTime, add12hours) {
