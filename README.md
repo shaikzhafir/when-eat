@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+site is up on [when-eat](https://when-eat.vercel.app/)
+
+read more about my process building this [here](https://blog.shaikzhafir.com/coding/when-eat-2023)
+
 ## Getting Started
 
 First, run the development server:
