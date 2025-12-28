@@ -12,7 +12,7 @@ var logger *slog.Logger
 func init() {
 	var file *os.File
 	logDir := "/opt/when-eat/when-eat.log"
-	if os.Getenv("PROD") == "true" {
+	if os.Getenv("ENV") == "prod" {
 		var err error
 		file, err = os.OpenFile(logDir, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
