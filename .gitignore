@@ -1,6 +1,7 @@
-/node_modules
-npm-debug.log
-.DS_Store
-/*.env
+tailwindcss
+when-eat
+.vscode/
+node_modules/
 .env
-.next
+.DS_Store
+docker-compose.yml

@@ -1,0 +1,6 @@
+<div class="flex flex-col items-center">
+    <p class="font-bold mt-5 {{if .CanEat}} text-green-600 {{else}} text-red-600 {{end}}">{{.Message}}</p>
+    <p>Maghrib Time : {{.MaghribTime}}</p>
+    <p>Subuh Time : {{.SubuhTime}}</p>
+    <img class="mt-10" src="{{.ImagePath}}" alt="">
+</div>
