@@ -81,7 +81,6 @@ func (sh *ScrapeHandler) GetPrayerTimings() http.HandlerFunc {
 			pageInfo.Message = "You cannot eat now!"
 			pageInfo.ImagePath = "static/cannot-eat.gif"
 			pageInfo.CanEat = false
-			log.Info("page info is %+v", pageInfo)
 			tmpl.Execute(w, pageInfo)
 		}
 	}
@@ -90,7 +89,7 @@ func (sh *ScrapeHandler) GetPrayerTimings() http.HandlerFunc {
 // this will be called to update the prayer timings from local JSON file
 func (sh *ScrapeHandler) UpdatePrayerTimings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := sh.cache.UpdateTimings()
+		err := sh.cache.Set(r.Context())
 		if err != nil {
 			log.Error("error updating prayer timings: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
